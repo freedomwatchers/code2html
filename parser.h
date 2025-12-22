@@ -9,7 +9,7 @@
 using namespace std;
 
 const int MAX_DELIMS = 14;
-const int MAX_KEYWORD = 64;
+const int MAX_KEYWORD = 256;
 const char delims[MAX_DELIMS] = { '<', '>', ';', '\n', '*', '&', ':', '(', ')',',', ' ','\t','[',']' };
 
 class Parser { 
@@ -19,7 +19,7 @@ class Parser {
 				virtual ~Parser() {}
 				int parse(char* fileName);
 		protected:
-				enum Context { string_literal, char_literal, single_line_comment, multiline_comment, file_end, newline, keyword };
+				enum Context { string_literal, char_literal, raw_string_literal, single_line_comment, multiline_comment, file_end, newline, keyword };
 
 				char* keyWords[MAX_KEYWORD]; 
 				char keyWord[MAX_KEYWORD];
@@ -32,9 +32,11 @@ class Parser {
 				void printFooter(ofstream& outFile);
 				Context handle_code(ifstream& inFile, ofstream& outFile);
 				void handle_literal(char delimiter, ifstream& inFile, ofstream& outFile);
-				void handle_single_comment(ifstream& inFile, ofstream& outFile);
+				void handle_raw_literal(ifstream& inFile, ofstream& outFile);
+				virtual void handle_single_comment(ifstream& inFile, ofstream& outFile);
 				int keyMatch(char ch, ofstream& outFile); 
-				void handle_multiline_comment(ifstream& inFile, ofstream& outFile); 
+				void flushKeyWord(ofstream& outFile);
+				virtual void handle_multiline_comment(ifstream& inFile, ofstream& outFile); 
 				void _parse(ifstream& inFile, ofstream& outFile);
 
 };

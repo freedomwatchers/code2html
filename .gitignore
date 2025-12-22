@@ -1,0 +1,11 @@
+# Binaries
+code2html
+
+# Test data and outputs
+cppcheck/
+*.html
+
+# IDE files
+*.opt
+*.dsp
+*.dsw
