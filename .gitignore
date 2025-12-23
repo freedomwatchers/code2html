@@ -1,5 +1,6 @@
 # Binaries
 code2html
+code2html_full
 
 # Test data and outputs
 cppcheck/
