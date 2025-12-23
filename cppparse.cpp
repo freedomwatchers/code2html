@@ -1,11 +1,11 @@
-#include "CppParser.h"
+#include "cppparse.h"
 
 CppParser::CppParser() {
-		ifstream keyFile("keywords/CPP.kwd");
+		ifstream keyFile("keywords/cpp.kwd");
 		char keyword[MAX_KEYWORD];
 		int i = 0;
 		
-		cout << keyWords << endl;
+
 
 		while(keyFile >> keyword) {
 				keyWords[i] = new char[MAX_KEYWORD];
@@ -46,8 +46,13 @@ void CppParser::handle_single_comment(ifstream& inFile, ofstream& outFile) {
 }
 
 
-int main() {
+int main(int argc, char* argv[]) {
+		if (argc < 2) {
+			cout << "Usage: " << argv[0] << " <filename>" << endl;
+			return 1;
+		}
 		CppParser* cpp = new CppParser();
-		cpp->parse("CppParser.cpp");
+		cpp->parse(argv[1]);
 		delete cpp;
+		return 0;
 }

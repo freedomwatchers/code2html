@@ -116,7 +116,9 @@ int keyMatch(char ch, ofstream& outFile) {
 	else 	
 	{
 		// tack the character onto the keyword
-		keyWord[keyIndex++] = ch;
+		if(keyIndex < MAX_KEYWORD - 1)
+			keyWord[keyIndex++] = ch;
+		return 0;
 	}
 }
 
@@ -418,12 +420,13 @@ int main(int argc, char** argv) {
 #endif
 	
 	for(int i = 1; i < argc; ++i) {
-		char ofName[64];
+		char ofName[1024];
 		
 		cout << "processing " << argv[i] << "...";
 
 		ifstream inFile(argv[i]);
-		strcpy(ofName, argv[i]);
+		strncpy(ofName, argv[i], 1019);
+		ofName[1019] = '\0';
 		
 		strcat(ofName, ".html");
 		ofstream outFile(ofName);

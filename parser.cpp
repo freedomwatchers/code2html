@@ -1,4 +1,4 @@
-#include "Parser.h"
+#include "parser.h"
 
 int             Parser::
 outputChar(char ch, ofstream & outFile)
@@ -57,11 +57,10 @@ keyMatch(char ch, ofstream & outFile)
 	//delimiter marks the end of a possible existing keyword
 		if (isDelim(ch)) {
 
-		//Search for a
-			match
+		//Search for a match
 				for (int i = 0; i < KEYWORDS; ++i) {
 				if ((strcmp((const char *) keyWord, keyWords[i])) == 0) {
-					cout << " match! ";
+					//cout << " match! ";
 					outFile << "<font color=\"blue\">";
 					outFile << keyWord;
 					outFile << "</font>";
@@ -77,16 +76,41 @@ keyMatch(char ch, ofstream & outFile)
 		outFile.flush();
 		outputChar(ch, outFile);
 		strncpy(keyWord, "\0", 64);
-		//clear string for re
-			-use
-				keyIndex = 0;
+		//clear string for re-use
+		keyIndex = 0;
 		return 0;
 
 	} else {
 		//tack the character onto the keyword
-			keyWord[keyIndex++] = ch;
+			if (keyIndex < MAX_KEYWORD - 1)
+				keyWord[keyIndex++] = ch;
+			keyWord[keyIndex] = '\0';
 
 	}
+	return 0;
+}
+
+void            Parser::
+flushKeyWord(ofstream & outFile)
+{
+	if (strcmp(keyWord, "") == 0) return;
+
+	//Search for a match
+	for (int i = 0; i < KEYWORDS; ++i) {
+		if ((strcmp((const char *) keyWord, keyWords[i])) == 0) {
+			outFile << "<font color=\"blue\">";
+			outFile << keyWord;
+			outFile << "</font>";
+			keyIndex = 0;
+			keyWord[0] = '\0';
+			return;
+		}
+	}
+
+	//No match
+	outFile << keyWord;
+	keyWord[0] = '\0';
+	keyIndex = 0;
 }
 
 void            Parser::
@@ -100,10 +124,47 @@ handle_single_comment(ifstream & inFile, ofstream & outFile)
 {
 }
 
+void            Parser::
+handle_raw_literal(ifstream & inFile, ofstream & outFile)
+{
+	outFile << "<font color=\"gray\">R\"";
+	char ch;
+	string delimiter = "";
+	while (inFile.get(ch) && ch != '(') {
+		delimiter += ch;
+		outFile.put(ch);
+	}
+	if (ch == '(') outFile.put(ch);
+
+	string end_delim = ")" + delimiter + "\"";
+	string buffer = "";
+
+	while (inFile.get(ch)) {
+		buffer += ch;
+		if (buffer.size() >= end_delim.size()) {
+			if (buffer.substr(buffer.size() - end_delim.size()) == end_delim) {
+				// Found end
+				for (size_t i = 0; i < buffer.size(); ++i) {
+					outputChar(buffer[i], outFile);
+				}
+				break;
+			}
+		}
+		if (buffer.size() > 512) { // Flush buffer periodically to avoid huge memory usage
+			for (size_t i = 0; i < buffer.size() - end_delim.size(); ++i) {
+				outputChar(buffer[i], outFile);
+			}
+			buffer = buffer.substr(buffer.size() - end_delim.size());
+		}
+	}
+	outFile << "</font>";
+}
+
 //Literals(char, string)
 //Make sure that <, >, etc are escaped inside literals !
 	void            Parser::handle_literal(char delimiter, ifstream & inFile, ofstream & outFile)
 {
+	outFile << "<font color=\"gray\">";
 	outFile.put(delimiter);
 
 	char            ch;
@@ -113,28 +174,36 @@ handle_single_comment(ifstream & inFile, ofstream & outFile)
 			outFile.put(ch);
 			break;
 		} else if (ch == '\\') {
-			inFile.get(ch) && outFile.put(ch);
+			outFile.put(ch);
+			if (inFile.get(ch)) outFile.put(ch);
 		} else
 			outputChar(ch, outFile);
 	}
+	outFile << "</font>";
 }
 
 
-Parser: : Context Parser: :handle_code(ifstream & inFile, ofstream & outFile)
+Parser::Context Parser::handle_code(ifstream & inFile, ofstream & outFile)
 {
 	char            ch;
 	while (inFile.get(ch)) {
 		switch (ch) {
 		case '/':
 			if (!inFile.get(ch)) {
+				flushKeyWord(outFile);
 				outFile.put('/');
 				return file_end;
 			} else {
-				if (ch == '*')
+				if (ch == '*') {
+					flushKeyWord(outFile);
 					return multiline_comment;
-				else if (ch == '/')
+				}
+				else if (ch == '/') {
+					flushKeyWord(outFile);
 					return single_line_comment;
+				}
 				else {
+					flushKeyWord(outFile);
 					outFile.put('/');
 					inFile.putback(ch);
 					break;
@@ -142,10 +211,18 @@ Parser: : Context Parser: :handle_code(ifstream & inFile, ofstream & outFile)
 			}
 
 		case '\"':
+			if (strcmp(keyWord, "R") == 0) {
+				keyWord[0] = '\0';
+				keyIndex = 0;
+				return raw_string_literal;
+			}
+			flushKeyWord(outFile);
 			return string_literal;
 		case '\'':
+			flushKeyWord(outFile);
 			return char_literal;
 		case '\n':
+			flushKeyWord(outFile);
 			return newline;
 		default:
 			{
@@ -176,17 +253,16 @@ parse(char *fileName)
 {
 	char           *fileExt;
 	ifstream        inFile(fileName);
-	char            ofName[64];
+	char            ofName[1024];
 	int             len = strlen(fileName);
 
-	strcpy(ofName, fileName);
+	strncpy(ofName, fileName, 1019);
+	ofName[1019] = '\0';
 	char           *index = strrchr(ofName, '.');
 
 	fileExt = index + 1;
-	//if ext
-		== cpp, load CppParser, etc.
-
-			* index = '\0';
+	//if ext == cpp, load CppParser, etc.
+	//			* index = '\0';
 	strcat(ofName, ".html");
 
 	ofstream        outFile(ofName);
@@ -202,7 +278,7 @@ void            Parser::
 _parse(ifstream & inFile, ofstream & outFile)
 {
 
-Parser: :Context context;
+Parser::Context context;
 
 	while ((context = handle_code(inFile, outFile)) != file_end)
 		switch (context) {
@@ -214,6 +290,9 @@ Parser: :Context context;
 			break;
 		case string_literal:
 			handle_literal('\"', inFile, outFile);
+			break;
+		case raw_string_literal:
+			handle_raw_literal(inFile, outFile);
 			break;
 		case char_literal:
 			handle_literal('\'', inFile, outFile);
@@ -229,11 +308,12 @@ Parser: :Context context;
 
 
 
-Parser: : Parser():keyIndex(0), KEYWORDS(0)
+Parser::Parser():keyIndex(0), KEYWORDS(0)
 {
 }
 
 
+/*
 int 
 main(int argc, char *argv[])
 {
@@ -243,3 +323,4 @@ main(int argc, char *argv[])
 	delete          p;
 	return 0;
 }
+*/
