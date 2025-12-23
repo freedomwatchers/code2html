@@ -253,10 +253,11 @@ parse(char *fileName)
 {
 	char           *fileExt;
 	ifstream        inFile(fileName);
-	char            ofName[64];
+	char            ofName[1024];
 	int             len = strlen(fileName);
 
-	strcpy(ofName, fileName);
+	strncpy(ofName, fileName, 1019);
+	ofName[1019] = '\0';
 	char           *index = strrchr(ofName, '.');
 
 	fileExt = index + 1;

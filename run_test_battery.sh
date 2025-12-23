@@ -17,7 +17,7 @@ START_TIME=$(date +%s)
 # Ensure code2html is built
 if [ ! -f "$CODE2HTML_BIN" ]; then
     echo "Building code2html..."
-    g++ parsefiles.cpp -o code2html || { echo "Failed to build code2html"; exit 1; }
+    g++ parser.cpp cppparse.cpp -o code2html || { echo "Failed to build code2html"; exit 1; }
 fi
 
 echo "Cloning repository $REPO_URL..."

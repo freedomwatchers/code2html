@@ -12,15 +12,16 @@ This is a simple tool to generate code syntax highlighting in HTML format.
 - **Wildcard Support**: Built-in wildcard expansion for Windows.
 
 ## C++ Support Matrix
-The following table details the level of C++ support provided by this tool. Note that `code2html` primarily supports a subset of C++98.
+The following table details the level of C++ support provided by this tool.
 
 | Feature Category | Fully Supported | Not Supported (Rendered as plain text) |
 | :--- | :--- | :--- |
-| **Keywords** | `if`, `else`, `while`, `for`, `switch`, `case`, `break`, `default`, `return`, `do`, `true`, `false` | `virtual`, `protected`, `static`, `inline`, `extern`, `explicit`, `export`, `mutable`, `namespace`, `operator`, `throw`, `try`, `catch`, `volatile` |
-| **Types** | `int`, `char`, `float`, `double`, `void`, `bool`, `short`, `long`, `unsigned`, `signed` | `auto`, `decltype`, `wchar_t`, `char16_t`, `char32_t` |
-| **OO / Memory** | `class`, `struct`, `union`, `new`, `delete`, `this`, `public`, `private`, `friend` | `final`, `override`, `constexpr`, `nullptr` |
-| **Preprocessor** | `#include`, `#define`, `#ifdef`, `#ifndef`, `#endif`, `#pragma`, `#import` | - |
-| **Modern C++ (C++11+)** | - | All modern features (e.g., `lambda`, `static_assert`, `thread_local`, `co_await`, `module`) |
+| **C++ Standard** | `C++98`, `C++03`, `C++11` | `C++14`, `C++17`, `C++20` |
+| **Keywords** | All keywords from C++11 (e.g., `constexpr`, `nullptr`, `decltype`, `final`, `override`) | Post-C++11 keywords |
+| **Types** | `int`, `char`, `float`, `double`, `void`, `bool`, `char16_t`, `char32_t`, `auto`, etc. | Post-C++11 types |
+| **OO / Memory** | `class`, `struct`, `union`, `new`, `delete`, `this`, `public`, `private`, `friend`, `virtual` | - |
+| **Preprocessor** | `#include`, `#define`, `#ifdef`, `#ifndef`, `#endif`, `#pragma`, `#import`, `#else` | - |
+| **Modern C++** | Lambdas, static_assert, thread_local (Keywords) | `co_await`, `module`, etc. |
 
 ## C++ Feature Documentation
 Below are links to documentation for features discussed above.
@@ -51,10 +52,13 @@ sudo apt-get install build-essential
 ```
 
 ### Build Instructions
-To build the project on Linux/Unix:
+To build the project on Linux/Unix (full-featured version):
 ```bash
-g++ parsefiles.cpp -o code2html
+g++ parser.cpp cppparse.cpp -o code2html
 ```
+
+> [!NOTE]
+> `parsefiles.cpp` contains a legacy standalone version with limited keyword support. For full C++11 highlighting, always build with `parser.cpp` and `cppparse.cpp`.
 
 ### Usage
 Run the tool by providing the source file(s) as arguments:
@@ -90,3 +94,4 @@ Provide the Git repository URL as an argument to the `run_test_battery.sh` scrip
 ## Feature Coverage & Reports
 - [C++98 Implementation Plan](C++98_Implementation_Plan.md)
 - [C++03 Coverage Report](C++03_Coverage_Report.md)
+- [C++11 Implementation Plan](C++11_Implementation_Plan.md)
